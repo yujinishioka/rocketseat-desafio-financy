@@ -1,0 +1,96 @@
+import { useForm } from 'react-hook-form'
+import { zodResolver } from '@hookform/resolvers/zod'
+import { z } from 'zod'
+import { useMutation } from '@apollo/client'
+import { LogOut } from 'lucide-react'
+import { useNavigate } from 'react-router-dom'
+import { UPDATE_PROFILE_MUTATION } from '../graphql/mutations'
+import { useAuth } from '../contexts/AuthContext'
+import { Input } from '../components/ui/Input'
+import { Button } from '../components/ui/Button'
+import { getInitials } from '../lib/utils'
+
+const profileSchema = z.object({
+  name: z.string().min(2, 'Nome deve ter pelo menos 2 caracteres'),
+  email: z.string().email('Email inválido'),
+})
+type ProfileForm = z.infer<typeof profileSchema>
+
+export function Profile() {
+  const { user, updateUser, signOut } = useAuth()
+  const navigate = useNavigate()
+
+  const [updateProfile, { loading, error, data: successData }] = useMutation(UPDATE_PROFILE_MUTATION)
+
+  const { register, handleSubmit, formState: { errors, isDirty } } = useForm<ProfileForm>({
+    resolver: zodResolver(profileSchema),
+    defaultValues: { name: user?.name ?? '', email: user?.email ?? '' },
+  })
+
+  async function onSubmit(data: ProfileForm) {
+    try {
+      const result = await updateProfile({ variables: data })
+      updateUser(result.data.updateProfile)
+    } catch (e) {
+      console.error(e)
+    }
+  }
+
+  function handleSignOut() {
+    signOut()
+    navigate('/')
+  }
+
+  return (
+    <div className="flex justify-center">
+      <div className="w-full max-w-md rounded-xl bg-white p-8 shadow-sm">
+        {/* Avatar */}
+        <div className="mb-6 flex flex-col items-center gap-3">
+          <div className="flex h-20 w-20 items-center justify-center rounded-full bg-primary-600 text-2xl font-bold text-white">
+            {user ? getInitials(user.name) : '?'}
+          </div>
+          <div className="text-center">
+            <p className="font-semibold text-gray-900">{user?.name}</p>
+            <p className="text-sm text-gray-500">{user?.email}</p>
+          </div>
+        </div>
+
+        <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-4">
+          <Input
+            label="Nome completo"
+            placeholder="Seu nome completo"
+            error={errors.name?.message}
+            {...register('name')}
+          />
+          <Input
+            label="E-mail"
+            type="email"
+            placeholder="mail@exemplo.com"
+            error={errors.email?.message}
+            {...register('email')}
+          />
+
+          {error && (
+            <p className="text-sm text-red-500">
+              {error.graphQLErrors[0]?.message || 'Erro ao salvar'}
+            </p>
+          )}
+          {successData && (
+            <p className="text-sm text-green-600">Perfil atualizado com sucesso!</p>
+          )}
+
+          <Button type="submit" loading={loading} disabled={!isDirty} className="w-full">
+            Salvar alterações
+          </Button>
+        </form>
+
+        <div className="mt-6 border-t border-gray-100 pt-6">
+          <Button variant="ghost" className="w-full text-red-500 hover:bg-red-50 hover:text-red-600" onClick={handleSignOut}>
+            <LogOut className="h-4 w-4" />
+            Sair da conta
+          </Button>
+        </div>
+      </div>
+    </div>
+  )
+}
