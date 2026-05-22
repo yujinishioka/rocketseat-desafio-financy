@@ -14,6 +14,7 @@ const profileSchema = z.object({
   name: z.string().min(2, 'Nome deve ter pelo menos 2 caracteres'),
   email: z.string().email('Email inválido'),
 })
+
 type ProfileForm = z.infer<typeof profileSchema>
 
 export function Profile() {
@@ -62,13 +63,17 @@ export function Profile() {
             error={errors.name?.message}
             {...register('name')}
           />
-          <Input
-            label="E-mail"
-            type="email"
-            placeholder="mail@exemplo.com"
-            error={errors.email?.message}
-            {...register('email')}
-          />
+          <div>
+            <Input
+              label="E-mail"
+              type="email"
+              placeholder="mail@exemplo.com"
+              error={errors.email?.message}
+              disabled
+              {...register('email')}
+            />
+            <p className="mt-1 text-sm text-gray-500">O e-mail não pode ser alterado</p>
+          </div>
 
           {error && (
             <p className="text-sm text-red-500">
@@ -79,17 +84,15 @@ export function Profile() {
             <p className="text-sm text-green-600">Perfil atualizado com sucesso!</p>
           )}
 
-          <Button type="submit" loading={loading} disabled={!isDirty} className="w-full">
+          <Button type="submit" loading={loading} disabled={!isDirty} className="w-full mt-2">
             Salvar alterações
           </Button>
         </form>
 
-        <div className="mt-6 border-t border-gray-100 pt-6">
-          <Button variant="ghost" className="w-full text-red-500 hover:bg-red-50 hover:text-red-600" onClick={handleSignOut}>
-            <LogOut className="h-4 w-4" />
-            Sair da conta
-          </Button>
-        </div>
+        <Button variant="ghost" className="w-full mt-4 border text-red-500 hover:bg-red-50 hover:text-red-600" onClick={handleSignOut}>
+          <LogOut className="h-4 w-4" />
+          Sair da conta
+        </Button>
       </div>
     </div>
   )

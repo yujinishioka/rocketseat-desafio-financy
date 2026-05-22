@@ -10,7 +10,7 @@ interface DialogProps {
   children: ReactNode
 }
 
-export function Dialog({ open, onOpenChange, trigger, children }: DialogProps) {
+export function Dialog({ open, onOpenChange, trigger, children }: Readonly<DialogProps>) {
   return (
     <RadixDialog.Root open={open} onOpenChange={onOpenChange}>
       {trigger && <RadixDialog.Trigger asChild>{trigger}</RadixDialog.Trigger>}
@@ -36,11 +36,11 @@ export function Dialog({ open, onOpenChange, trigger, children }: DialogProps) {
   )
 }
 
-export function DialogHeader({ children, className }: { children: ReactNode; className?: string }) {
+export function DialogHeader({ children, className }: Readonly<{ children: ReactNode; className?: string }>) {
   return <div className={cn('mb-5', className)}>{children}</div>
 }
 
-export function DialogTitle({ children }: { children: ReactNode }) {
+export function DialogTitle({ children }: Readonly<{ children: ReactNode }>) {
   return (
     <RadixDialog.Title className="text-lg font-semibold text-gray-900">
       {children}
@@ -48,7 +48,7 @@ export function DialogTitle({ children }: { children: ReactNode }) {
   )
 }
 
-export function DialogDescription({ children }: { children: ReactNode }) {
+export function DialogDescription({ children }: Readonly<{ children: ReactNode }>) {
   return (
     <RadixDialog.Description className="mt-1 text-sm text-gray-500">
       {children}
@@ -56,6 +56,6 @@ export function DialogDescription({ children }: { children: ReactNode }) {
   )
 }
 
-export function DialogFooter({ children }: { children: ReactNode }) {
+export function DialogFooter({ children }: Readonly<{ children: ReactNode }>) {
   return <div className="mt-6 flex justify-end gap-3">{children}</div>
 }

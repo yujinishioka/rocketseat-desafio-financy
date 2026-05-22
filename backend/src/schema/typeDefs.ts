@@ -76,6 +76,8 @@ export const typeDefs = /* GraphQL */ `
   type Mutation {
     register(name: String!, email: String!, password: String!): AuthPayload!
     login(email: String!, password: String!): AuthPayload!
+    forgotPassword(email: String!): Boolean!
+    resetPassword(token: String!, newPassword: String!): Boolean!
 
     createTransaction(
       description: String!

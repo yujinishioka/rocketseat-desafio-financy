@@ -6,7 +6,7 @@ interface BadgeProps {
   className?: string
 }
 
-export function CategoryBadge({ label, color = '#1F6F43', className }: BadgeProps) {
+export function CategoryBadge({ label, color = '#1F6F43', className }: Readonly<BadgeProps>) {
   return (
     <span
       className={cn('inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium', className)}
@@ -21,7 +21,7 @@ interface TypeBadgeProps {
   type: 'INCOME' | 'EXPENSE'
 }
 
-export function TypeBadge({ type }: TypeBadgeProps) {
+export function TypeBadge({ type }: Readonly<TypeBadgeProps>) {
   return (
     <span
       className={cn(

@@ -1,11 +1,5 @@
-import { NavLink, useNavigate } from 'react-router-dom'
-import { LogOut, UserRound } from 'lucide-react'
-import { useAuth } from '../../contexts/AuthContext'
-import { getInitials } from '../../lib/utils'
-
-// Importar o SVG do logo diretamente
-const FinancyLogo = () => (
-  <svg width="100" height="24" viewBox="0 0 134 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+export const FinancyLogo = () => (
+  <svg width="120" height="29" viewBox="0 0 134 32" fill="none" xmlns="http://www.w3.org/2000/svg">
     <path d="M16.7013 10.4383C16.7013 6.97934 13.8972 4.17531 10.4383 4.17531C6.97934 4.17531 4.17531 6.97934 4.17531 10.4383C4.17531 13.8972 6.97934 16.7013 10.4383 16.7013C13.8972 16.7013 16.7013 13.8972 16.7013 10.4383ZM20.8766 10.4383C20.8766 16.2032 16.2032 20.8766 10.4383 20.8766C4.67338 20.8766 0 16.2032 0 10.4383C0 4.67338 4.67338 0 10.4383 0C16.2032 0 20.8766 4.67338 20.8766 10.4383Z" fill="#1F6F43"/>
     <path d="M22.5254 13.0069C22.9284 11.927 24.131 11.3783 25.2111 11.781C26.8553 12.3941 28.3185 13.4116 29.4653 14.7398C30.6121 16.0683 31.4052 17.665 31.7718 19.3813C32.1382 21.0976 32.0665 22.8787 31.5624 24.5597C31.0582 26.2409 30.1383 27.7687 28.8876 29.0001C27.6369 30.2314 26.0953 31.1276 24.4065 31.6056C22.7179 32.0834 20.9358 32.1279 19.2254 31.7347C17.5149 31.3414 15.9311 30.5223 14.6206 29.3548C13.3102 28.1873 12.3157 26.7083 11.7283 25.0544C11.3425 23.968 11.91 22.775 12.9964 22.3891C14.0828 22.0033 15.2758 22.5709 15.6617 23.6572C16.0141 24.6496 16.6111 25.5378 17.3974 26.2383C18.1836 26.9387 19.1343 27.4294 20.1605 27.6654C21.1868 27.9013 22.257 27.8747 23.2703 27.5879C24.2834 27.3011 25.2083 26.7636 25.9587 26.0249C26.709 25.2862 27.2599 24.3695 27.5625 23.3609C27.865 22.3524 27.9087 21.2837 27.6889 20.2539C27.469 19.2242 26.9932 18.2661 26.3052 17.469C25.6171 16.6719 24.7381 16.0605 23.7514 15.6926C22.6715 15.2896 22.1227 14.0871 22.5254 13.0069Z" fill="#1F6F43"/>
     <path d="M9.04652 13.2218V9.04652C8.27786 9.04652 7.65474 8.4234 7.65474 7.65474C7.65474 6.88609 8.27786 6.26297 9.04652 6.26297H10.4383L10.581 6.26977C11.2826 6.34121 11.8301 6.93426 11.8301 7.65474V13.2218C11.8301 13.9905 11.2069 14.6136 10.4383 14.6136C9.66963 14.6136 9.04652 13.9905 9.04652 13.2218Z" fill="#1F6F43"/>
@@ -19,67 +13,3 @@ const FinancyLogo = () => (
     <path d="M43.4842 25.2762C43.2522 25.2762 43.1362 25.1602 43.1362 24.9282V7.07182C43.1362 6.83986 43.2522 6.72388 43.4842 6.72388H53.0178C53.2498 6.72388 53.3658 6.83986 53.3658 7.07182V10.078C53.3658 10.31 53.2498 10.426 53.0178 10.426H47.7708V15.0745H52.3219C52.5539 15.0745 52.6699 15.1905 52.6699 15.4225V18.4287C52.6699 18.6606 52.5539 18.7766 52.3219 18.7766H47.7708V24.9282C47.7708 25.1602 47.6548 25.2762 47.4229 25.2762H43.4842Z" fill="#1F6F43"/>
   </svg>
 )
-
-const NAV_LINKS = [
-  { to: '/dashboard', label: 'Dashboard' },
-  { to: '/transactions', label: 'Transações' },
-  { to: '/categories', label: 'Categorias' },
-]
-
-export function TopNav() {
-  const { user, signOut } = useAuth()
-  const navigate = useNavigate()
-
-  function handleSignOut() {
-    signOut()
-    navigate('/')
-  }
-
-  return (
-    <header className="sticky top-0 z-40 flex h-14 items-center border-b border-gray-300 bg-white px-6">
-      <div className="flex w-full justify-between gap-8">
-        {/* Logo */}
-        <NavLink to="/dashboard" className="shrink-0">
-          <FinancyLogo />
-        </NavLink>
-
-        {/* Navigation */}
-        <nav className="flex items-center gap-1">
-          {NAV_LINKS.map(({ to, label }) => (
-            <NavLink
-              key={to}
-              to={to}
-              className={({ isActive }) =>
-                `rounded-md px-3 py-1.5 text-sm font-medium transition-colors ${
-                  isActive
-                    ? 'bg-primary-800 text-white'
-                    : 'text-gray-500 hover:bg-gray-800 hover:text-white'
-                }`
-              }
-            >
-              {label}
-            </NavLink>
-          ))}
-        </nav>
-
-        {/* User area */}
-        <div className="flex items-center gap-3">
-          <button
-            onClick={() => navigate('/profile')}
-            className="flex h-8 w-8 items-center justify-center rounded-full bg-primary-600 text-xs font-semibold text-white hover:bg-primary-700 transition-colors"
-            title={user?.name}
-          >
-            {user ? getInitials(user.name) : <UserRound className="h-4 w-4" />}
-          </button>
-          <button
-            onClick={handleSignOut}
-            className="flex h-8 w-8 items-center justify-center rounded-md text-gray-400 hover:bg-gray-800 hover:text-white transition-colors"
-            title="Sair"
-          >
-            <LogOut className="h-4 w-4" />
-          </button>
-        </div>
-      </div>
-    </header>
-  )
-}

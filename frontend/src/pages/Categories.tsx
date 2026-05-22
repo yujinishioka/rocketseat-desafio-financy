@@ -25,9 +25,9 @@ interface Category {
 
 function CategoryModal({
   open, onClose, onSaved, editData,
-}: {
+}: Readonly<{
   open: boolean; onClose: () => void; onSaved: () => void; editData?: Category
-}) {
+}>) {
   const isEditing = !!editData
   const [selectedIcon, setSelectedIcon] = useState(editData?.icon ?? CATEGORY_ICONS[0].name)
   const [selectedColor, setSelectedColor] = useState(editData?.color ?? CATEGORY_COLORS[0])

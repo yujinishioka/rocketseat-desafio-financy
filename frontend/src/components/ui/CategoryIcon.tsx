@@ -42,7 +42,7 @@ interface CategoryIconDisplayProps {
   size?: 'sm' | 'md' | 'lg'
 }
 
-export function CategoryIconDisplay({ icon, color, size = 'md' }: CategoryIconDisplayProps) {
+export function CategoryIconDisplay({ icon, color, size = 'md' }: Readonly<CategoryIconDisplayProps>) {
   const Icon = ICON_MAP[icon] ?? Tag
   const sizes = {
     sm: { wrapper: 'h-8 w-8 rounded-lg', icon: 'h-4 w-4' },

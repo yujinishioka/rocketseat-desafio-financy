@@ -88,8 +88,8 @@ rocketseat-desafio-financy/
 
 ## Pré-requisitos
 
-- [Node.js](https://nodejs.org) v18 ou superior
-- [npm](https://npmjs.com) v9 ou superior
+- [Node.js](https://nodejs.org) v18+
+- [npm](https://npmjs.com) v9+
 
 ---
 
@@ -221,5 +221,5 @@ Distribuído sob a licença MIT. Veja [`LICENSE`](./LICENSE) para mais informaç
 ---
 
 <p align="center">
-  Desenvolvido por <a href="https://github.com/yuu-nishioka">Vinicius Yuji Nishioka</a> · Desafio Rocketseat Pós-Graduação
+  Desenvolvido por <a href="https://github.com/yujinishioka">Vinicius Yuji Nishioka</a> · Desafio Rocketseat Pós-Graduação
 </p>

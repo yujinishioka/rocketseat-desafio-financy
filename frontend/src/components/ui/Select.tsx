@@ -18,7 +18,7 @@ interface SelectProps {
   disabled?: boolean
 }
 
-export function Select({ value, onValueChange, placeholder, options, label, error, disabled }: SelectProps) {
+export function Select({ value, onValueChange, placeholder, options, label, error, disabled }: Readonly<SelectProps>) {
   return (
     <div className="flex flex-col gap-1.5">
       {label && <label className="text-sm font-medium text-gray-700">{label}</label>}
@@ -68,7 +68,7 @@ interface NativeSelectProps extends React.SelectHTMLAttributes<HTMLSelectElement
   children: ReactNode
 }
 
-export function NativeSelect({ label, error, children, className, ...props }: NativeSelectProps) {
+export function NativeSelect({ label, error, children, className, ...props }: Readonly<NativeSelectProps>) {
   return (
     <div className="flex flex-col gap-1.5">
       {label && <label className="text-sm font-medium text-gray-700">{label}</label>}

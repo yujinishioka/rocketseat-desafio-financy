@@ -7,7 +7,9 @@ const httpLink = createHttpLink({
 })
 
 const authLink = setContext((_, { headers }) => {
-  const token = localStorage.getItem('financy:token')
+  const token =
+    localStorage.getItem('financy:token') ||
+    sessionStorage.getItem('financy:token')
   return {
     headers: {
       ...headers,
@@ -21,6 +23,7 @@ const errorLink = onError(({ graphQLErrors }) => {
     for (const err of graphQLErrors) {
       if (err.extensions?.code === 'UNAUTHENTICATED') {
         localStorage.removeItem('financy:token')
+        sessionStorage.removeItem('financy:token')
         window.location.href = '/'
       }
     }

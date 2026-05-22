@@ -40,10 +40,10 @@ const YEARS = Array.from({ length: 5 }, (_, i) => {
 
 function TransactionModal({
   open, onClose, onSaved, categories, editData,
-}: {
+}: Readonly<{
   open: boolean; onClose: () => void; onSaved: () => void
   categories: { id: string; name: string }[]; editData?: Transaction
-}) {
+}>) {
   const [type, setType] = useState<'INCOME' | 'EXPENSE'>(editData?.type ?? 'EXPENSE')
   const [createTx, { loading: creating }] = useMutation(CREATE_TRANSACTION_MUTATION)
   const [updateTx, { loading: updating }] = useMutation(UPDATE_TRANSACTION_MUTATION)

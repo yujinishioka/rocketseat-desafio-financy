@@ -11,20 +11,22 @@ interface User {
 interface AuthContextValue {
   user: User | null
   isLoading: boolean
-  signIn: (token: string, user: User) => void
+  signIn: (token: string, user: User, remember?: boolean) => void
   signOut: () => void
   updateUser: (user: User) => void
 }
 
 const AuthContext = createContext<AuthContextValue>({} as AuthContextValue)
 
-export function AuthProvider({ children }: { children: ReactNode }) {
+export function AuthProvider({ children }: Readonly<{ children: ReactNode }>) {
   const [user, setUser] = useState<User | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const client = useApolloClient()
 
   useEffect(() => {
-    const token = localStorage.getItem('financy:token')
+    const token =
+      localStorage.getItem('financy:token') ||
+      sessionStorage.getItem('financy:token')
     if (!token) {
       setIsLoading(false)
       return
@@ -37,17 +39,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       })
       .catch(() => {
         localStorage.removeItem('financy:token')
+        sessionStorage.removeItem('financy:token')
       })
       .finally(() => setIsLoading(false))
   }, [client])
 
-  function signIn(token: string, userData: User) {
-    localStorage.setItem('financy:token', token)
+  function signIn(token: string, userData: User, remember = false) {
+    if (remember) {
+      localStorage.setItem('financy:token', token)
+    } else {
+      sessionStorage.setItem('financy:token', token)
+    }
     setUser(userData)
   }
 
   function signOut() {
     localStorage.removeItem('financy:token')
+    sessionStorage.removeItem('financy:token')
     setUser(null)
     client.clearStore()
   }

@@ -11,7 +11,7 @@ import { Button } from '../components/ui/Button'
 import { Input } from '../components/ui/Input'
 import { Select } from '../components/ui/Select'
 import { Dialog, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '../components/ui/Dialog'
-import { CategoryBadge, TypeBadge } from '../components/ui/Badge'
+import { CategoryBadge } from '../components/ui/Badge'
 import { CategoryIconDisplay } from '../components/ui/CategoryIcon'
 
 const transactionSchema = z.object({
@@ -33,9 +33,9 @@ interface Transaction {
 
 function SummaryCard({
   title, value, icon, colorClass,
-}: {
+}: Readonly<{
   title: string; value: number; icon: React.ReactNode; colorClass: string
-}) {
+}>) {
   return (
     <div className="flex flex-col gap-3 rounded-xl bg-white p-5 shadow-sm">
       <div className="flex items-center gap-2">
@@ -49,13 +49,13 @@ function SummaryCard({
 
 function TransactionModal({
   open, onClose, onSaved, categories, editData,
-}: {
+}: Readonly<{
   open: boolean
   onClose: () => void
   onSaved: () => void
   categories: { id: string; name: string }[]
   editData?: Transaction
-}) {
+}>) {
   const [type, setType] = useState<'INCOME' | 'EXPENSE'>(editData?.type ?? 'EXPENSE')
   const isEditing = !!editData
 
