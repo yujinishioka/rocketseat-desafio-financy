@@ -17,6 +17,7 @@ export function Dialog({ open, onOpenChange, trigger, children }: Readonly<Dialo
       <RadixDialog.Portal>
         <RadixDialog.Overlay className="fixed inset-0 z-50 bg-black/50 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0" />
         <RadixDialog.Content
+          onOpenAutoFocus={(e) => e.preventDefault()}
           className={cn(
             'fixed left-[50%] top-[50%] z-50 w-full max-w-lg translate-x-[-50%] translate-y-[-50%] rounded-xl bg-white p-6 shadow-xl',
             'data-[state=open]:animate-in data-[state=closed]:animate-out',

@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useQuery, useMutation } from '@apollo/client'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -20,6 +20,7 @@ const transactionSchema = z.object({
   amount: z.coerce.number().positive('Valor deve ser positivo'),
   categoryId: z.string().optional(),
 })
+
 type TransactionForm = z.infer<typeof transactionSchema>
 
 interface Transaction {
@@ -34,7 +35,7 @@ const MONTHS = Array.from({ length: 12 }, (_, i) => ({
   label: getMonthName(i + 1).charAt(0).toUpperCase() + getMonthName(i + 1).slice(1),
 }))
 const YEARS = Array.from({ length: 5 }, (_, i) => {
-  const y = now.getFullYear() - 2 + i
+  const y = now.getFullYear() - 4 + i
   return { value: String(y), label: String(y) }
 })
 
@@ -48,12 +49,20 @@ function TransactionModal({
   const [createTx, { loading: creating }] = useMutation(CREATE_TRANSACTION_MUTATION)
   const [updateTx, { loading: updating }] = useMutation(UPDATE_TRANSACTION_MUTATION)
 
-  const { register, handleSubmit, reset, setValue, formState: { errors } } = useForm<TransactionForm>({
+  const { register, handleSubmit, reset, setValue, watch, formState: { errors } } = useForm<TransactionForm>({
     resolver: zodResolver(transactionSchema),
-    defaultValues: editData
-      ? { description: editData.description, date: editData.date.split('T')[0], amount: editData.amount, categoryId: editData.category?.id ?? '' }
-      : {},
   })
+
+  useEffect(() => {
+    if (open) {
+      setType(editData?.type ?? 'EXPENSE')
+      reset(editData
+        ? { description: editData.description, date: editData.date.split('T')[0], amount: editData.amount, categoryId: editData.category?.id ?? '' }
+        : { description: '', date: '', categoryId: '' })
+    }
+  }, [open, editData, reset])
+
+  const categoryId = watch('categoryId')
 
   async function onSubmit(data: TransactionForm) {
     try {
@@ -81,7 +90,7 @@ function TransactionModal({
       <div className="mb-4 flex rounded-lg border border-gray-200 p-1">
         {(['EXPENSE', 'INCOME'] as const).map((t) => (
           <button key={t} type="button" onClick={() => setType(t)}
-            className={`flex flex-1 items-center justify-center gap-2 rounded-md py-2 text-sm font-medium transition-colors ${type === t ? 'bg-primary-600 text-white' : 'text-gray-500 hover:text-gray-700'}`}>
+            className={`flex flex-1 items-center justify-center gap-2 rounded-md py-2 text-sm font-medium transition-colors ${type === t ? (t === 'EXPENSE' ? 'bg-red-500 text-white' : 'bg-primary-600 text-white') : 'text-gray-500 hover:text-gray-700'}`}>
             {t === 'EXPENSE' ? <CircleArrowDown className="h-4 w-4" /> : <CircleArrowUp className="h-4 w-4" />}
             {t === 'EXPENSE' ? 'Despesa' : 'Receita'}
           </button>
@@ -94,7 +103,7 @@ function TransactionModal({
           <Input label="Valor" type="number" step="0.01" placeholder="R$ 0,00" error={errors.amount?.message} {...register('amount')} />
         </div>
         <Select label="Categoria" options={categoryOptions} placeholder="Selecione"
-          value={editData?.category?.id ?? 'none'}
+          value={categoryId || 'none'}
           onValueChange={(v) => setValue('categoryId', v === 'none' ? '' : v)} />
         <DialogFooter>
           <Button type="button" variant="secondary" onClick={onClose}>Cancelar</Button>
@@ -172,20 +181,20 @@ export function Transactions() {
       {/* Filters */}
       <div className="flex flex-wrap items-end gap-3 rounded-xl bg-white p-4 shadow-sm">
         <div className="flex-1 min-w-48">
-          <Input placeholder="Buscar por descrição..." leftIcon={<Search className="h-4 w-4" />}
+          <Input label="Buscar" placeholder="Buscar por descrição..." leftIcon={<Search className="h-4 w-4" />}
             value={search} onChange={(e) => { setSearch(e.target.value); setPage(1) }} />
         </div>
         <div className="w-36">
-          <Select options={typeOptions} value={filterType} onValueChange={(v) => { setFilterType(v); setPage(1) }} />
+          <Select label="Tipo" options={typeOptions} value={filterType} onValueChange={(v) => { setFilterType(v); setPage(1) }} />
         </div>
         <div className="w-40">
-          <Select options={categoryOptions} value={filterCategory} onValueChange={(v) => { setFilterCategory(v); setPage(1) }} />
+          <Select label="Categoria" options={categoryOptions} value={filterCategory} onValueChange={(v) => { setFilterCategory(v); setPage(1) }} />
         </div>
         <div className="w-36">
-          <Select options={MONTHS} value={filterMonth} onValueChange={(v) => { setFilterMonth(v); setPage(1) }} placeholder="Mês" />
+          <Select label="Mês" options={MONTHS} value={filterMonth} onValueChange={(v) => { setFilterMonth(v); setPage(1) }} placeholder="Mês" />
         </div>
         <div className="w-28">
-          <Select options={YEARS} value={filterYear} onValueChange={(v) => { setFilterYear(v); setPage(1) }} placeholder="Ano" />
+          <Select label="Ano" options={YEARS} value={filterYear} onValueChange={(v) => { setFilterYear(v); setPage(1) }} placeholder="Ano" />
         </div>
       </div>
 
@@ -199,7 +208,7 @@ export function Transactions() {
               <th className="px-4 py-3">Categoria</th>
               <th className="px-4 py-3">Tipo</th>
               <th className="px-4 py-3 text-right">Valor</th>
-              <th className="px-4 py-3" />
+              <th className="px-4 py-3">Ações</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-50">
@@ -232,8 +241,8 @@ export function Transactions() {
                     )}
                   </td>
                   <td className="px-4 py-3.5"><TypeBadge type={t.type} /></td>
-                  <td className={`px-4 py-3.5 text-right font-semibold ${t.type === 'INCOME' ? 'text-green-600' : 'text-gray-800'}`}>
-                    {t.type === 'INCOME' ? '+' : ''}{formatCurrency(t.amount)}
+                  <td className={`px-4 py-3.5 text-right font-semibold ${t.type === 'INCOME' ? 'text-green-600' : 'text-red-500'}`}>
+                    {t.type === 'INCOME' ? '+' : '-'}{formatCurrency(t.amount)}
                   </td>
                   <td className="px-4 py-3.5">
                     <div className="flex items-center gap-1">

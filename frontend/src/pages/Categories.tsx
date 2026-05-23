@@ -1,15 +1,16 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useQuery, useMutation } from '@apollo/client'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
-import { Plus, SquarePen, Trash, Tag } from 'lucide-react'
+import { Plus, SquarePen, Trash, Tag, ReceiptText } from 'lucide-react'
 import { CATEGORIES_QUERY, CATEGORY_SUMMARY_QUERY } from '../graphql/queries'
 import { CREATE_CATEGORY_MUTATION, UPDATE_CATEGORY_MUTATION, DELETE_CATEGORY_MUTATION } from '../graphql/mutations'
 import { Button } from '../components/ui/Button'
 import { Input } from '../components/ui/Input'
 import { Dialog, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '../components/ui/Dialog'
 import { CategoryIconDisplay, CATEGORY_ICONS, CATEGORY_COLORS } from '../components/ui/CategoryIcon'
+import { CategoryBadge } from '../components/ui/Badge'
 import { cn } from '../lib/utils'
 
 const categorySchema = z.object({
@@ -20,7 +21,7 @@ type CategoryForm = z.infer<typeof categorySchema>
 
 interface Category {
   id: string; name: string; description?: string
-  icon: string; color: string; transactionCount: number
+  icon: string; color: string; transactionCount: number; totalAmount: number
 }
 
 function CategoryModal({
@@ -37,8 +38,17 @@ function CategoryModal({
 
   const { register, handleSubmit, reset, formState: { errors } } = useForm<CategoryForm>({
     resolver: zodResolver(categorySchema),
-    defaultValues: editData ? { name: editData.name, description: editData.description ?? '' } : {},
   })
+
+  useEffect(() => {
+    if (open) {
+      setSelectedIcon(editData?.icon ?? CATEGORY_ICONS[0].name)
+      setSelectedColor(editData?.color ?? CATEGORY_COLORS[0])
+      reset(editData
+        ? { name: editData.name, description: editData.description ?? '' }
+        : { name: '', description: '' })
+    }
+  }, [open, editData, reset])
 
   async function onSubmit(data: CategoryForm) {
     try {
@@ -151,34 +161,48 @@ export function Categories() {
         </Button>
       </div>
 
-      {/* Summary bar */}
+      {/* Summary cards */}
       {summary && (
-        <div className="flex items-center gap-8 rounded-xl bg-white p-5 shadow-sm">
-          <div className="flex flex-col">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+          <div className="flex flex-col gap-3 rounded-xl bg-white p-5 shadow-sm">
+            <div className="flex items-center gap-2.5">
+              <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary-50">
+                <Tag className="h-5 w-5 text-primary-600" />
+              </span>
+              <span className="text-sm font-medium text-gray-500">Total de categorias</span>
+            </div>
             <span className="text-2xl font-bold text-gray-900">{summary.totalCategories}</span>
-            <span className="text-xs text-gray-500">Total de categorias</span>
           </div>
-          <div className="h-10 w-px bg-gray-200" />
-          <div className="flex flex-col">
+
+          <div className="flex flex-col gap-3 rounded-xl bg-white p-5 shadow-sm">
+            <div className="flex items-center gap-2.5">
+              <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-blue-50">
+                <ReceiptText className="h-5 w-5 text-blue-600" />
+              </span>
+              <span className="text-sm font-medium text-gray-500">Total de transações</span>
+            </div>
             <span className="text-2xl font-bold text-gray-900">{summary.totalTransactions}</span>
-            <span className="text-xs text-gray-500">Total de transações</span>
           </div>
-          {summary.mostUsedCategory && (
-            <>
-              <div className="h-10 w-px bg-gray-200" />
-              <div className="flex items-center gap-3">
+
+          <div className="flex flex-col gap-3 rounded-xl bg-white p-5 shadow-sm">
+            <div className="flex items-center gap-2.5">
+              {summary.mostUsedCategory ? (
                 <CategoryIconDisplay
                   icon={summary.mostUsedCategory.icon}
                   color={summary.mostUsedCategory.color}
-                  size="md"
+                  size="sm"
                 />
-                <div className="flex flex-col">
-                  <span className="text-2xl font-bold text-gray-900">{summary.mostUsedCount}</span>
-                  <span className="text-xs text-gray-500">{summary.mostUsedCategory.name} · Em uso</span>
-                </div>
-              </div>
-            </>
-          )}
+              ) : (
+                <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-gray-100">
+                  <Tag className="h-5 w-5 text-gray-400" />
+                </span>
+              )}
+              <span className="text-sm font-medium text-gray-500">Mais utilizada</span>
+            </div>
+            <span className="text-2xl font-bold text-gray-900">
+              {summary.mostUsedCategory ? summary.mostUsedCategory.name : '—'}
+            </span>
+          </div>
         </div>
       )}
 
@@ -221,14 +245,11 @@ export function Categories() {
                 )}
               </div>
 
-              <div className="flex items-center justify-between">
-                <span className="text-xs text-gray-400">
-                  {cat.transactionCount} {cat.transactionCount === 1 ? 'transação' : 'transações'}
+              <div className="flex mt-2 items-center justify-between gap-2">
+                <CategoryBadge label={cat.name} color={cat.color} />
+                <span className="text-xs text-gray-400 shrink-0">
+                  {cat.transactionCount} {cat.transactionCount === 1 ? 'item' : 'itens'}
                 </span>
-                <div
-                  className="h-2 w-2 rounded-full"
-                  style={{ backgroundColor: cat.color }}
-                />
               </div>
             </div>
           ))}

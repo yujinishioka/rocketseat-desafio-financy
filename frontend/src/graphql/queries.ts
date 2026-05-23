@@ -87,6 +87,7 @@ export const CATEGORIES_QUERY = gql`
       icon
       color
       transactionCount
+      totalAmount
     }
   }
 `

@@ -2,7 +2,7 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { useMutation } from '@apollo/client'
-import { LogOut } from 'lucide-react'
+import { LogOut, Mail, UserRound } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import { UPDATE_PROFILE_MUTATION } from '../graphql/mutations'
 import { useAuth } from '../contexts/AuthContext'
@@ -60,20 +60,19 @@ export function Profile() {
           <Input
             label="Nome completo"
             placeholder="Seu nome completo"
+            leftIcon={<UserRound className="h-4 w-4" />}
             error={errors.name?.message}
             {...register('name')}
           />
-          <div>
-            <Input
-              label="E-mail"
-              type="email"
-              placeholder="mail@exemplo.com"
-              error={errors.email?.message}
-              disabled
-              {...register('email')}
-            />
-            <p className="mt-1 text-sm text-gray-500">O e-mail não pode ser alterado</p>
-          </div>
+          <Input
+            label="E-mail"
+            type="email"
+            placeholder="mail@exemplo.com"
+            leftIcon={<Mail className="h-4 w-4" />}
+            error={errors.email?.message}
+            disabled
+            {...register('email')}
+          />
 
           {error && (
             <p className="text-sm text-red-500">

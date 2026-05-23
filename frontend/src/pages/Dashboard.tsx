@@ -1,11 +1,12 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useQuery, useMutation } from '@apollo/client'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
-import { Plus, Wallet, CircleArrowUp, CircleArrowDown, SquarePen, Trash } from 'lucide-react'
+import { Plus, Wallet, CircleArrowUp, CircleArrowDown, ChevronRight, Tag } from 'lucide-react'
+import { useNavigate } from 'react-router-dom'
 import { TRANSACTION_SUMMARY_QUERY, RECENT_TRANSACTIONS_QUERY, CATEGORIES_QUERY } from '../graphql/queries'
-import { CREATE_TRANSACTION_MUTATION, UPDATE_TRANSACTION_MUTATION, DELETE_TRANSACTION_MUTATION } from '../graphql/mutations'
+import { CREATE_TRANSACTION_MUTATION, UPDATE_TRANSACTION_MUTATION } from '../graphql/mutations'
 import { formatCurrency, formatDate } from '../lib/utils'
 import { Button } from '../components/ui/Button'
 import { Input } from '../components/ui/Input'
@@ -32,15 +33,17 @@ interface Transaction {
 }
 
 function SummaryCard({
-  title, value, icon, colorClass,
+  title, value, icon, colorClass, bgClass,
 }: Readonly<{
-  title: string; value: number; icon: React.ReactNode; colorClass: string
+  title: string; value: number; icon: React.ReactNode; colorClass: string; bgClass: string
 }>) {
   return (
     <div className="flex flex-col gap-3 rounded-xl bg-white p-5 shadow-sm">
-      <div className="flex items-center gap-2">
-        <span className={colorClass}>{icon}</span>
-        <span className="text-sm font-medium text-gray-500">{title}</span>
+      <div className="flex items-center gap-2.5">
+        <span className={`flex h-9 w-9 items-center justify-center rounded-lg ${bgClass}`}>
+          <span className={colorClass}>{icon}</span>
+        </span>
+        <span className="text-sm font-medium text-gray-500 uppercase">{title}</span>
       </div>
       <span className="text-2xl font-bold text-gray-900">{formatCurrency(value)}</span>
     </div>
@@ -62,17 +65,25 @@ function TransactionModal({
   const [createTransaction, { loading: creating }] = useMutation(CREATE_TRANSACTION_MUTATION)
   const [updateTransaction, { loading: updating }] = useMutation(UPDATE_TRANSACTION_MUTATION)
 
-  const { register, handleSubmit, reset, setValue, formState: { errors } } = useForm<TransactionForm>({
+  const { register, handleSubmit, reset, setValue, watch, formState: { errors } } = useForm<TransactionForm>({
     resolver: zodResolver(transactionSchema),
-    defaultValues: editData
-      ? {
-          description: editData.description,
-          date: editData.date.split('T')[0],
-          amount: editData.amount,
-          categoryId: editData.category?.id ?? '',
-        }
-      : {},
   })
+
+  useEffect(() => {
+    if (open) {
+      setType(editData?.type ?? 'EXPENSE')
+      reset(editData
+        ? {
+            description: editData.description,
+            date: editData.date.split('T')[0],
+            amount: editData.amount,
+            categoryId: editData.category?.id ?? '',
+          }
+        : { description: '', date: '', categoryId: '' })
+    }
+  }, [open, editData, reset])
+
+  const categoryId = watch('categoryId')
 
   async function onSubmit(data: TransactionForm) {
     try {
@@ -115,7 +126,7 @@ function TransactionModal({
             onClick={() => setType(t)}
             className={`flex flex-1 items-center justify-center gap-2 rounded-md py-2 text-sm font-medium transition-colors ${
               type === t
-                ? 'bg-primary-600 text-white'
+                ? t === 'EXPENSE' ? 'bg-red-500 text-white' : 'bg-primary-600 text-white'
                 : 'text-gray-500 hover:text-gray-700'
             }`}
           >
@@ -153,7 +164,7 @@ function TransactionModal({
         <Select
           label="Categoria"
           options={categoryOptions}
-          value={editData?.category?.id ?? 'none'}
+          value={categoryId || 'none'}
           onValueChange={(v) => setValue('categoryId', v === 'none' ? '' : v)}
         />
 
@@ -166,7 +177,17 @@ function TransactionModal({
   )
 }
 
+interface Category {
+  id: string
+  name: string
+  icon: string
+  color: string
+  transactionCount: number
+  totalAmount: number
+}
+
 export function Dashboard() {
+  const navigate = useNavigate()
   const [modalOpen, setModalOpen] = useState(false)
   const [editingTransaction, setEditingTransaction] = useState<Transaction | undefined>()
 
@@ -174,21 +195,13 @@ export function Dashboard() {
   const { data: recentData, refetch: refetchRecent } = useQuery(RECENT_TRANSACTIONS_QUERY)
   const { data: categoriesData } = useQuery(CATEGORIES_QUERY)
 
-  const [deleteTransaction] = useMutation(DELETE_TRANSACTION_MUTATION)
-
   const summary = summaryData?.transactionSummary
   const recentTransactions: Transaction[] = recentData?.recentTransactions ?? []
-  const categories = categoriesData?.categories ?? []
+  const categories: Category[] = categoriesData?.categories ?? []
 
   function handleSaved() {
     refetchSummary()
     refetchRecent()
-  }
-
-  async function handleDelete(id: string) {
-    if (!confirm('Tem certeza que deseja excluir esta transação?')) return
-    await deleteTransaction({ variables: { id } })
-    handleSaved()
   }
 
   function openCreate() {
@@ -196,112 +209,89 @@ export function Dashboard() {
     setModalOpen(true)
   }
 
-  function openEdit(t: Transaction) {
-    setEditingTransaction(t)
-    setModalOpen(true)
-  }
-
   return (
     <div className="flex flex-col gap-6">
-      {/* Summary Cards */}
+      {/* Cards Sumário */}
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
         <SummaryCard
           title="Saldo Total"
           value={summary?.totalBalance ?? 0}
           icon={<Wallet className="h-5 w-5" />}
           colorClass="text-primary-600"
+          bgClass="bg-primary-50"
         />
         <SummaryCard
           title="Receitas do Mês"
           value={summary?.monthlyIncome ?? 0}
           icon={<CircleArrowUp className="h-5 w-5" />}
-          colorClass="text-green-500"
+          colorClass="text-green-600"
+          bgClass="bg-green-50"
         />
         <SummaryCard
           title="Despesas do Mês"
           value={summary?.monthlyExpense ?? 0}
           icon={<CircleArrowDown className="h-5 w-5" />}
           colorClass="text-red-500"
+          bgClass="bg-red-50"
         />
       </div>
 
-      {/* Recent Transactions */}
-      <div className="rounded-xl bg-white shadow-sm">
-        <div className="flex items-center justify-between border-b border-gray-100 px-6 py-4">
-          <h2 className="font-semibold text-gray-900">Transações Recentes</h2>
-          <div className="flex items-center gap-3">
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
+
+        {/* Transações Recentes */}
+        <div className="flex flex-col rounded-xl bg-white shadow-sm lg:col-span-2">
+          <div className="flex items-center justify-between border-b border-gray-100 px-6 py-4">
+            <h2 className="font-semibold text-gray-500 uppercase">Transações Recentes</h2>
             <button
-              onClick={() => {/* navigate to /transactions */}}
-              className="text-sm font-medium text-primary-600 hover:text-primary-700"
+              onClick={() => navigate('/transactions')}
+              className="flex items-center gap-1 text-sm font-medium text-primary-600 hover:text-primary-700"
             >
               Ver todas
+              <ChevronRight className="h-5 w-5" />
             </button>
-            <Button size="sm" onClick={openCreate}>
-              <Plus className="h-4 w-4" />
-              Nova Transação
-            </Button>
           </div>
-        </div>
 
-        <div className="divide-y divide-gray-50">
-          {recentTransactions.length === 0 ? (
-            <div className="flex flex-col items-center gap-2 py-12 text-center">
-              <Wallet className="h-10 w-10 text-gray-300" />
-              <p className="text-sm text-gray-500">Nenhuma transação ainda</p>
-              <Button size="sm" variant="secondary" onClick={openCreate}>
-                <Plus className="h-4 w-4" />
-                Nova Transação
-              </Button>
-            </div>
-          ) : (
-            recentTransactions.map((t) => (
-              <div key={t.id} className="flex items-center gap-4 px-6 py-4">
-                {t.category ? (
-                  <CategoryIconDisplay icon={t.category.icon} color={t.category.color} size="sm" />
-                ) : (
-                  <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gray-100">
-                    <Wallet className="h-4 w-4 text-gray-400" />
-                  </div>
-                )}
-
-                <div className="flex flex-1 flex-col">
-                  <span className="text-sm font-medium text-gray-900">{t.description}</span>
-                  <span className="text-xs text-gray-400">{formatDate(t.date)}</span>
-                </div>
-
-                {t.category && (
-                  <CategoryBadge label={t.category.name} color={t.category.color} />
-                )}
-
-                <span
-                  className={`text-sm font-semibold ${
-                    t.type === 'INCOME' ? 'text-green-600' : 'text-gray-800'
-                  }`}
-                >
-                  {t.type === 'INCOME' ? '+' : ''}{formatCurrency(t.amount)}
-                </span>
-
-                <div className="flex items-center gap-1">
-                  <button
-                    onClick={() => openEdit(t)}
-                    className="rounded p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-600"
-                  >
-                    <SquarePen className="h-4 w-4" />
-                  </button>
-                  <button
-                    onClick={() => handleDelete(t.id)}
-                    className="rounded p-1 text-gray-400 hover:bg-red-50 hover:text-red-500"
-                  >
-                    <Trash className="h-4 w-4" />
-                  </button>
-                </div>
+          <div className="flex-1 divide-y divide-gray-50">
+            {recentTransactions.length === 0 ? (
+              <div className="flex flex-col items-center gap-2 py-12 text-center">
+                <Wallet className="h-10 w-10 text-gray-300" />
+                <p className="text-sm text-gray-500">Nenhuma transação ainda</p>
               </div>
-            ))
-          )}
-        </div>
+            ) : (
+              recentTransactions.map((t) => (
+                <div key={t.id} className="flex items-center gap-4 px-6 py-4">
+                  {t.category ? (
+                    <CategoryIconDisplay icon={t.category.icon} color={t.category.color} size="sm" />
+                  ) : (
+                    <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gray-100">
+                      <Wallet className="h-4 w-4 text-gray-400" />
+                    </div>
+                  )}
 
-        {recentTransactions.length > 0 && (
-          <div className="border-t border-gray-100 px-6 py-3">
+                  <div className="flex flex-1 flex-col">
+                    <span className="text-sm font-medium text-gray-900">{t.description}</span>
+                    <span className="text-xs text-gray-400">{formatDate(t.date)}</span>
+                  </div>
+
+                  {t.category && (
+                    <CategoryBadge label={t.category.name} color={t.category.color} />
+                  )}
+
+                  <div className={`flex items-center gap-1 ${t.type === 'INCOME' ? 'text-green-600' : 'text-red-500'}`}>
+                    <span className="text-sm font-semibold">
+                      {t.type === 'INCOME' ? '+' : '-'}{formatCurrency(t.amount)}
+                    </span>
+                    {t.type === 'INCOME'
+                      ? <CircleArrowUp className="h-4 w-4 shrink-0" />
+                      : <CircleArrowDown className="h-4 w-4 shrink-0" />
+                    }
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+
+          <div className="border-t border-gray-100 px-6 py-3 flex justify-center">
             <button
               onClick={openCreate}
               className="flex items-center gap-1.5 text-sm font-medium text-primary-600 hover:text-primary-700"
@@ -310,7 +300,48 @@ export function Dashboard() {
               Nova Transação
             </button>
           </div>
-        )}
+        </div>
+
+        {/* Categorias */}
+        <div className="rounded-xl bg-white shadow-sm">
+          <div className="flex items-center justify-between border-b border-gray-100 px-6 py-4">
+            <h2 className="font-semibold text-gray-500 uppercase">Categorias</h2>
+            <button
+              onClick={() => navigate('/categories')}
+              className="flex items-center gap-1 text-sm font-medium text-primary-600 hover:text-primary-700"
+            >
+              Gerenciar
+              <ChevronRight className="h-5 w-5" />
+            </button>
+          </div>
+
+          <div className="divide-y divide-gray-50">
+            {categories.length === 0 ? (
+              <div className="flex flex-col items-center gap-2 py-12 text-center">
+                <Tag className="h-10 w-10 text-gray-300" />
+                <p className="text-sm text-gray-500">Nenhuma categoria ainda</p>
+              </div>
+            ) : (
+              categories.slice(0, 6).map((cat) => (
+                <div key={cat.id} className="flex items-center gap-4 px-6 py-4">
+                  <div className="flex-1">
+                    <CategoryBadge label={cat.name} color={cat.color} />
+                  </div>
+
+                  <span className="text-xs text-gray-400">
+                    {cat.transactionCount} {cat.transactionCount === 1 ? 'item' : 'itens'}
+                  </span>
+
+                  <span className="text-sm font-semibold text-gray-800">
+                    {formatCurrency(cat.totalAmount)}
+                  </span>
+                </div>
+              ))
+            )}
+          </div>
+
+        </div>
+
       </div>
 
       <TransactionModal

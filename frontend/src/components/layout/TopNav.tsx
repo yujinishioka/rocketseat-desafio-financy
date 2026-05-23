@@ -52,8 +52,8 @@ export function TopNav() {
               className={({ isActive }) =>
                 `rounded-md px-3 py-1.5 text-sm font-medium transition-colors ${
                   isActive
-                    ? 'bg-primary-800 text-white'
-                    : 'text-gray-500 hover:bg-gray-800 hover:text-white'
+                    ? 'bg-primary text-white'
+                    : 'text-gray-600 hover:bg-gray-500 hover:text-white'
                 }`
               }
             >
@@ -73,7 +73,7 @@ export function TopNav() {
           </button>
           <button
             onClick={handleSignOut}
-            className="flex h-8 w-8 items-center justify-center rounded-md text-gray-400 hover:bg-gray-800 hover:text-white transition-colors"
+            className="flex h-8 w-8 items-center justify-center rounded-md text-gray-400 hover:bg-gray-100 hover:text-gray-600 transition-colors"
             title="Sair"
           >
             <LogOut className="h-4 w-4" />

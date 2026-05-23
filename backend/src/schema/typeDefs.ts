@@ -23,6 +23,7 @@ export const typeDefs = /* GraphQL */ `
     icon: String!
     color: String!
     transactionCount: Int!
+    totalAmount: Float!
     createdAt: String!
   }
 
