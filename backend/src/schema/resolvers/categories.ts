@@ -6,19 +6,42 @@ function requireAuth(ctx: Context) {
   return ctx.userId
 }
 
-// Busca o total de amount de transações por categoria em uma única query de groupBy
-async function getAmountMap(userId: string, ctx: Context): Promise<Map<string, number>> {
+// Calcula o valor líquido (INCOME − EXPENSE) por categoria, com filtro opcional de mês/ano
+async function getNetAmountMap(
+  userId: string,
+  ctx: Context,
+  options?: { month?: number; year?: number }
+): Promise<Map<string, number>> {
+  const where: any = { userId, categoryId: { not: null } }
+
+  if (options?.month && options?.year) {
+    const start = new Date(options.year, options.month - 1, 1)
+    const end   = new Date(options.year, options.month, 1)
+    where.date = { gte: start, lt: end }
+  } else if (options?.year) {
+    const start = new Date(options.year, 0, 1)
+    const end   = new Date(options.year + 1, 0, 1)
+    where.date = { gte: start, lt: end }
+  }
+
   const rows = await ctx.prisma.transaction.groupBy({
-    by: ['categoryId'],
-    where: { userId, categoryId: { not: null } },
+    by: ['categoryId', 'type'],
+    where,
     _sum: { amount: true },
   })
-  return new Map(rows.map((r) => [r.categoryId as string, r._sum.amount ?? 0]))
+
+  const map = new Map<string, number>()
+  for (const row of rows) {
+    const catId  = row.categoryId as string
+    const amount = row._sum.amount ?? 0
+    map.set(catId, (map.get(catId) ?? 0) + (row.type === 'INCOME' ? amount : -amount))
+  }
+  return map
 }
 
 export const categoryResolvers = {
   Query: {
-    categories: async (_: unknown, __: unknown, ctx: Context) => {
+    categories: async (_: unknown, args: { month?: number; year?: number }, ctx: Context) => {
       const userId = requireAuth(ctx)
 
       const [categories, amountMap] = await Promise.all([
@@ -27,7 +50,7 @@ export const categoryResolvers = {
           include: { _count: { select: { transactions: true } } },
           orderBy: { name: 'asc' },
         }),
-        getAmountMap(userId, ctx),
+        getNetAmountMap(userId, ctx, { month: args.month, year: args.year }),
       ])
 
       return categories.map((c) => ({
@@ -47,7 +70,7 @@ export const categoryResolvers = {
           where: { userId },
           include: { _count: { select: { transactions: true } } },
         }),
-        getAmountMap(userId, ctx),
+        getNetAmountMap(userId, ctx),
       ])
 
       const sorted = categories.sort((a, b) => b._count.transactions - a._count.transactions)
@@ -95,7 +118,7 @@ export const categoryResolvers = {
           data,
           include: { _count: { select: { transactions: true } } },
         }),
-        getAmountMap(userId, ctx),
+        getNetAmountMap(userId, ctx),
       ])
       return { ...category, transactionCount: category._count.transactions, totalAmount: amountMap.get(id) ?? 0 }
     },

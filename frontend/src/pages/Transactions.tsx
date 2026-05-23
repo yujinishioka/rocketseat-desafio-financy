@@ -119,14 +119,23 @@ export function Transactions() {
   const [editingTx, setEditingTx] = useState<Transaction | undefined>()
   const [page, setPage] = useState(1)
   const [search, setSearch] = useState('')
+  const [debouncedSearch, setDebouncedSearch] = useState('')
   const [filterType, setFilterType] = useState<string>('all')
   const [filterCategory, setFilterCategory] = useState<string>('all')
   const [filterMonth, setFilterMonth] = useState<string>(String(now.getMonth() + 1))
   const [filterYear, setFilterYear] = useState<string>(String(now.getFullYear()))
 
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearch(search)
+      setPage(1)
+    }, 1000)
+    return () => clearTimeout(timer)
+  }, [search])
+
   const { data, refetch } = useQuery(TRANSACTIONS_QUERY, {
     variables: {
-      search: search || undefined,
+      search: debouncedSearch || undefined,
       type: filterType === 'all' ? undefined : filterType,
       categoryId: filterCategory === 'all' ? undefined : filterCategory,
       month: filterMonth ? Number(filterMonth) : undefined,
@@ -134,8 +143,9 @@ export function Transactions() {
       page,
       limit: 10,
     },
+    fetchPolicy: 'cache-and-network',
   })
-  const { data: catData } = useQuery(CATEGORIES_QUERY)
+  const { data: catData } = useQuery(CATEGORIES_QUERY, { fetchPolicy: 'cache-and-network' })
   const [deleteTx] = useMutation(DELETE_TRANSACTION_MUTATION)
 
   const result = data?.transactions
@@ -162,9 +172,6 @@ export function Transactions() {
     ...categories.map((c: any) => ({ value: c.id, label: c.name })),
   ]
 
-  const monthLabel = MONTHS.find((m) => m.value === filterMonth)?.label ?? ''
-  const periodLabel = monthLabel ? `${monthLabel} / ${filterYear}` : filterYear
-
   return (
     <div className="flex flex-col gap-6">
       <div className="flex items-start justify-between">
@@ -182,7 +189,7 @@ export function Transactions() {
       <div className="flex flex-wrap items-end gap-3 rounded-xl bg-white p-4 shadow-sm">
         <div className="flex-1 min-w-48">
           <Input label="Buscar" placeholder="Buscar por descrição..." leftIcon={<Search className="h-4 w-4" />}
-            value={search} onChange={(e) => { setSearch(e.target.value); setPage(1) }} />
+            value={search} onChange={(e) => setSearch(e.target.value)} />
         </div>
         <div className="w-36">
           <Select label="Tipo" options={typeOptions} value={filterType} onValueChange={(v) => { setFilterType(v); setPage(1) }} />

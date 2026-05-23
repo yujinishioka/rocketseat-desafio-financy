@@ -1,4 +1,5 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
+import { Toaster } from 'sonner'
 import { AuthProvider } from './contexts/AuthContext'
 import { PrivateLayout, PublicLayout } from './components/layout/Layout'
 import { Login } from './pages/Login'
@@ -13,6 +14,7 @@ import { Profile } from './pages/Profile'
 export function App() {
   return (
     <BrowserRouter>
+      <Toaster position="top-right" richColors />
       <AuthProvider>
         <Routes>
           {/* Public routes */}

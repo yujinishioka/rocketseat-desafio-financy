@@ -32,7 +32,6 @@ export function ResetPassword() {
     resolver: zodResolver(schema),
   })
 
-  // Token ausente na URL
   if (!token) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-gray-100 px-4">

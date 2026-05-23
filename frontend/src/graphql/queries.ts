@@ -79,8 +79,8 @@ export const TRANSACTIONS_QUERY = gql`
 `
 
 export const CATEGORIES_QUERY = gql`
-  query Categories {
-    categories {
+  query Categories($month: Int, $year: Int) {
+    categories(month: $month, year: $year) {
       id
       name
       description

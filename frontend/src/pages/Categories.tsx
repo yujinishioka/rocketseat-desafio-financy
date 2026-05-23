@@ -3,7 +3,7 @@ import { useQuery, useMutation } from '@apollo/client'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
-import { Plus, SquarePen, Trash, Tag, ReceiptText } from 'lucide-react'
+import { Plus, SquarePen, Trash, Tag, ArrowUpDown } from 'lucide-react'
 import { CATEGORIES_QUERY, CATEGORY_SUMMARY_QUERY } from '../graphql/queries'
 import { CREATE_CATEGORY_MUTATION, UPDATE_CATEGORY_MUTATION, DELETE_CATEGORY_MUTATION } from '../graphql/mutations'
 import { Button } from '../components/ui/Button'
@@ -97,15 +97,15 @@ function CategoryModal({
         {/* Color picker */}
         <div>
           <label className="mb-1.5 block text-sm font-medium text-gray-700">Cor</label>
-          <div className="flex flex-wrap gap-2">
+          <div className="grid grid-cols-9 gap-1.5">
             {CATEGORY_COLORS.map((color) => (
               <button
                 key={color}
                 type="button"
                 onClick={() => setSelectedColor(color)}
                 className={cn(
-                  'h-7 w-7 rounded-full border-2 transition-transform',
-                  selectedColor === color ? 'scale-110 border-gray-900' : 'border-transparent'
+                  'h-8 w-8 rounded-full border-2 transition-transform',
+                  selectedColor === color ? 'scale-110 border-gray-900' : 'border-transparent hover:scale-105'
                 )}
                 style={{ backgroundColor: color }}
               />
@@ -132,8 +132,8 @@ export function Categories() {
   const [modalOpen, setModalOpen] = useState(false)
   const [editingCat, setEditingCat] = useState<Category | undefined>()
 
-  const { data, refetch } = useQuery(CATEGORIES_QUERY)
-  const { data: summaryData, refetch: refetchSummary } = useQuery(CATEGORY_SUMMARY_QUERY)
+  const { data, refetch } = useQuery(CATEGORIES_QUERY, { fetchPolicy: 'cache-and-network' })
+  const { data: summaryData, refetch: refetchSummary } = useQuery(CATEGORY_SUMMARY_QUERY, { fetchPolicy: 'cache-and-network' })
   const [deleteCat] = useMutation(DELETE_CATEGORY_MUTATION)
 
   const categories: Category[] = data?.categories ?? []
@@ -177,7 +177,7 @@ export function Categories() {
           <div className="flex flex-col gap-3 rounded-xl bg-white p-5 shadow-sm">
             <div className="flex items-center gap-2.5">
               <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-blue-50">
-                <ReceiptText className="h-5 w-5 text-blue-600" />
+                <ArrowUpDown className="h-5 w-5 text-purple-600" />
               </span>
               <span className="text-sm font-medium text-gray-500">Total de transações</span>
             </div>

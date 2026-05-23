@@ -2,6 +2,7 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { useMutation } from '@apollo/client'
+import { toast } from 'sonner'
 import { LogOut, Mail, UserRound } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import { UPDATE_PROFILE_MUTATION } from '../graphql/mutations'
@@ -21,7 +22,7 @@ export function Profile() {
   const { user, updateUser, signOut } = useAuth()
   const navigate = useNavigate()
 
-  const [updateProfile, { loading, error, data: successData }] = useMutation(UPDATE_PROFILE_MUTATION)
+  const [updateProfile, { loading, error }] = useMutation(UPDATE_PROFILE_MUTATION)
 
   const { register, handleSubmit, formState: { errors, isDirty } } = useForm<ProfileForm>({
     resolver: zodResolver(profileSchema),
@@ -32,6 +33,7 @@ export function Profile() {
     try {
       const result = await updateProfile({ variables: data })
       updateUser(result.data.updateProfile)
+      toast.success('Perfil atualizado com sucesso!')
     } catch (e) {
       console.error(e)
     }
@@ -64,23 +66,24 @@ export function Profile() {
             error={errors.name?.message}
             {...register('name')}
           />
-          <Input
-            label="E-mail"
-            type="email"
-            placeholder="mail@exemplo.com"
-            leftIcon={<Mail className="h-4 w-4" />}
-            error={errors.email?.message}
-            disabled
-            {...register('email')}
-          />
+
+          <div>
+            <Input
+              label="E-mail"
+              type="email"
+              placeholder="mail@exemplo.com"
+              leftIcon={<Mail className="h-4 w-4" />}
+              error={errors.email?.message}
+              disabled
+              {...register('email')}
+            />
+            <p className="mt-1 text-sm text-gray-400">O e-mail não pode ser alterado</p>
+          </div>
 
           {error && (
             <p className="text-sm text-red-500">
               {error.graphQLErrors[0]?.message || 'Erro ao salvar'}
             </p>
-          )}
-          {successData && (
-            <p className="text-sm text-green-600">Perfil atualizado com sucesso!</p>
           )}
 
           <Button type="submit" loading={loading} disabled={!isDirty} className="w-full mt-2">

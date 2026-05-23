@@ -31,9 +31,28 @@ export const ICON_MAP: Record<string, LucideIcon> = Object.fromEntries(
 )
 
 export const CATEGORY_COLORS = [
-  '#1F6F43', '#2563EB', '#7C3AED', '#DB2777', '#DC2626',
-  '#EA580C', '#D97706', '#65A30D', '#0891B2', '#0F766E',
-  '#4F46E5', '#BE185D', '#B45309', '#15803D', '#1D4ED8',
+  // Lima
+  '#65A30D',
+  // Verdes
+  '#14532D', '#1F6F43', '#15803D',
+  // Esmeralda
+  '#065F46', '#059669',
+  // Teal → Ciano
+  '#134E4A', '#0F766E', '#0E7490',
+  // Azuis
+  '#1E3A8A', '#1D4ED8', '#2563EB', '#0284C7',
+  // Índigo → Roxo
+  '#3730A3', '#4F46E5', '#5B21B6', '#7C3AED',
+  // Rosa → Pink
+  '#9D174D', '#BE185D', '#DB2777',
+  // Vermelho
+  '#7F1D1D', '#DC2626',
+  // Laranja
+  '#C2410C', '#EA580C',
+  // Âmbar
+  '#B45309', '#D97706',
+  // Amarelo
+  '#CA8A04',
 ]
 
 interface CategoryIconDisplayProps {

@@ -3,7 +3,6 @@ import { LogOut, UserRound } from 'lucide-react'
 import { useAuth } from '../../contexts/AuthContext'
 import { getInitials } from '../../lib/utils'
 
-// Importar o SVG do logo diretamente
 const FinancyLogo = () => (
   <svg width="100" height="24" viewBox="0 0 134 32" fill="none" xmlns="http://www.w3.org/2000/svg">
     <path d="M16.7013 10.4383C16.7013 6.97934 13.8972 4.17531 10.4383 4.17531C6.97934 4.17531 4.17531 6.97934 4.17531 10.4383C4.17531 13.8972 6.97934 16.7013 10.4383 16.7013C13.8972 16.7013 16.7013 13.8972 16.7013 10.4383ZM20.8766 10.4383C20.8766 16.2032 16.2032 20.8766 10.4383 20.8766C4.67338 20.8766 0 16.2032 0 10.4383C0 4.67338 4.67338 0 10.4383 0C16.2032 0 20.8766 4.67338 20.8766 10.4383Z" fill="#1F6F43"/>

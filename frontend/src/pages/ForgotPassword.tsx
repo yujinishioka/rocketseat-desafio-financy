@@ -31,8 +31,6 @@ export function ForgotPassword() {
       setSubmittedEmail(data.email)
       setSent(true)
     } catch {
-      // Mesmo em caso de erro, mostramos sucesso para não vazar
-      // se o e-mail existe ou não no banco
       setSubmittedEmail(data.email)
       setSent(true)
     }

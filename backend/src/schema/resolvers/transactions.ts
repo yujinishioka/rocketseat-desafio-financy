@@ -38,7 +38,7 @@ export const transactionResolvers = {
       const skip = (page - 1) * limit
 
       const where: any = { userId }
-      if (args.search) where.description = { contains: args.search, mode: 'insensitive' }
+      if (args.search) where.description = { contains: args.search }
       if (args.type) where.type = args.type
       if (args.categoryId) where.categoryId = args.categoryId
 

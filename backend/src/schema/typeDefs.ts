@@ -70,7 +70,7 @@ export const typeDefs = /* GraphQL */ `
     ): TransactionsResult!
     recentTransactions: [Transaction!]!
     transactionSummary: TransactionSummary!
-    categories: [Category!]!
+    categories(month: Int, year: Int): [Category!]!
     categorySummary: CategorySummary!
   }
 

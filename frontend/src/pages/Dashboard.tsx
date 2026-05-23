@@ -88,13 +88,16 @@ function TransactionModal({
   async function onSubmit(data: TransactionForm) {
     try {
       const catId = data.categoryId && data.categoryId !== 'none' ? data.categoryId : null
+      const refetchQueries = [TRANSACTION_SUMMARY_QUERY, RECENT_TRANSACTIONS_QUERY, CATEGORIES_QUERY]
       if (isEditing) {
         await updateTransaction({
           variables: { id: editData.id, ...data, type, categoryId: catId },
+          refetchQueries,
         })
       } else {
         await createTransaction({
           variables: { ...data, type, categoryId: catId },
+          refetchQueries,
         })
       }
       reset()
@@ -191,13 +194,21 @@ export function Dashboard() {
   const [modalOpen, setModalOpen] = useState(false)
   const [editingTransaction, setEditingTransaction] = useState<Transaction | undefined>()
 
-  const { data: summaryData, refetch: refetchSummary } = useQuery(TRANSACTION_SUMMARY_QUERY)
-  const { data: recentData, refetch: refetchRecent } = useQuery(RECENT_TRANSACTIONS_QUERY)
-  const { data: categoriesData } = useQuery(CATEGORIES_QUERY)
+  const { data: summaryData, refetch: refetchSummary } = useQuery(TRANSACTION_SUMMARY_QUERY, { fetchPolicy: 'cache-and-network' })
+  const { data: recentData, refetch: refetchRecent } = useQuery(RECENT_TRANSACTIONS_QUERY, { fetchPolicy: 'cache-and-network' })
+  const now = new Date()
+  const { data: categoriesData } = useQuery(CATEGORIES_QUERY, {
+    variables: { month: now.getMonth() + 1, year: now.getFullYear() },
+    fetchPolicy: 'cache-and-network',
+  })
 
   const summary = summaryData?.transactionSummary
   const recentTransactions: Transaction[] = recentData?.recentTransactions ?? []
-  const categories: Category[] = categoriesData?.categories ?? []
+  const allCategories: Category[] = categoriesData?.categories ?? []
+  const monthlySortedCategories = [...allCategories]
+    .filter((cat) => cat.totalAmount !== 0)
+    .sort((a, b) => a.totalAmount - b.totalAmount)
+    .slice(0, 6)
 
   function handleSaved() {
     refetchSummary()
@@ -217,8 +228,8 @@ export function Dashboard() {
           title="Saldo Total"
           value={summary?.totalBalance ?? 0}
           icon={<Wallet className="h-5 w-5" />}
-          colorClass="text-primary-600"
-          bgClass="bg-primary-50"
+          colorClass="text-purple-500"
+          bgClass="bg-purple-50"
         />
         <SummaryCard
           title="Receitas do Mês"
@@ -316,23 +327,19 @@ export function Dashboard() {
           </div>
 
           <div className="divide-y divide-gray-50">
-            {categories.length === 0 ? (
+            {monthlySortedCategories.length === 0 ? (
               <div className="flex flex-col items-center gap-2 py-12 text-center">
                 <Tag className="h-10 w-10 text-gray-300" />
-                <p className="text-sm text-gray-500">Nenhuma categoria ainda</p>
+                <p className="text-sm text-gray-500">Nenhuma movimentação este mês</p>
               </div>
             ) : (
-              categories.slice(0, 6).map((cat) => (
+              monthlySortedCategories.map((cat) => (
                 <div key={cat.id} className="flex items-center gap-4 px-6 py-4">
                   <div className="flex-1">
                     <CategoryBadge label={cat.name} color={cat.color} />
                   </div>
 
-                  <span className="text-xs text-gray-400">
-                    {cat.transactionCount} {cat.transactionCount === 1 ? 'item' : 'itens'}
-                  </span>
-
-                  <span className="text-sm font-semibold text-gray-800">
+                  <span className={`text-sm font-semibold ${cat.totalAmount >= 0 ? 'text-green-600' : 'text-red-500'}`}>
                     {formatCurrency(cat.totalAmount)}
                   </span>
                 </div>
@@ -348,7 +355,7 @@ export function Dashboard() {
         open={modalOpen}
         onClose={() => setModalOpen(false)}
         onSaved={handleSaved}
-        categories={categories}
+        categories={allCategories}
         editData={editingTransaction}
       />
     </div>
